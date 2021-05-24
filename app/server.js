@@ -5,6 +5,9 @@ const http = require("http"), // http module
   url = require("url"), // url module
   mysql = require("mysql"), // sql module
   express = require("express"),
+  mongo = require("mongodb"),
+  mongoURL = "mongodb://localhost:27017/mydb",
+  MongoClient = require("mongodb").MongoClient,
   mongoose = require("mongoose"),
   passport = require("passport"),
   bodyParser = require("body-parser"),
@@ -12,6 +15,15 @@ const http = require("http"), // http module
   passportLocalMongoose = require("passport-local-mongoose"),
   User = require("./models/user"),
   events = require("events");
+
+
+MongoClient.connect(mongoURL, function(err, db) {
+  if (err) throw err;
+  console.log("Database created!");
+  db.close();
+});
+// mongod --dbpath "E:\Program Files\MongoDB\Server\4.4\data"
+// npm start - calls package.json file
 
 // Events and port
 const eventEmitter = new events.EventEmitter();
