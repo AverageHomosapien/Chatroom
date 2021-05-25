@@ -1,29 +1,22 @@
+//https://www.geeksforgeeks.org/nodejs-authentication-using-passportjs-and-passport-local-mongoose/
+
 // Require statements
 const http = require("http"), // http module
-  dt = require("./nodeModules"), // importing custom modules
+  //dt = require("./node_modules"), // importing custom modules
   fs = require("fs"), // file system module
   url = require("url"), // url module
-  mysql = require("mysql"), // sql module
   express = require("express"),
+  router = express.Router(),
+  bodyParser = require("body-parser"),
   mongo = require("mongodb"),
-  mongoURL = "mongodb://localhost:27017/mydb",
-  MongoClient = require("mongodb").MongoClient,
   mongoose = require("mongoose"),
   passport = require("passport"),
-  bodyParser = require("body-parser"),
-  LocalStrategy = require("passport-local"),
   passportLocalMongoose = require("passport-local-mongoose"),
-  User = require("./models/user"),
   events = require("events");
 
-
-MongoClient.connect(mongoURL, function(err, db) {
-  if (err) throw err;
-  console.log("Database created!");
-  db.close();
-});
 // mongod --dbpath "E:\Program Files\MongoDB\Server\4.4\data"
 // npm start - calls package.json file
+// (or node server.js)
 
 // Events and port
 const eventEmitter = new events.EventEmitter();
@@ -41,15 +34,17 @@ mongoose.connect('mongodb://localhost/chatroom_app');
 var app = express();
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-
 app.use(require("express-session")({
   secret: "Rusty is POGGERS",
   resave: false,
   saveUninitialized: false
 }))
+
 app.use(passport.initialize());
 app.use(passport.session());
 
+const User = require('./model/user');
+const LocalStrategy = require('passport-local').Strategy;
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
@@ -60,11 +55,13 @@ passport.deserializeUser(User.deserializeUser());
 
 // Index page
 app.get('/', function (req, res){
+  console.log("attempting to render index");
   res.render("index");
 });
 
 // Room page
 app.get('/room', isLoggedIn, function (req, res){
+  console.log("attempting to render room");
   res.render("room");
 });
 
@@ -92,16 +89,16 @@ app.get("/logout", function(req, res){
   res.redirect("/");
 })
 
+// -------------
+//    EVENTS
+// -------------
+
 // Checking if logged in
 function isLoggedIn(req, res, next){
   if (req.isAuthenticated()) return next();
   res.redirect("/index");
 }
 
-
-// -------------
-//    EVENTS
-// -------------
 var eventScream = function() {
   console.log("I hear a scream")
 }
@@ -121,7 +118,8 @@ eventEmitter.emit('scream');
 // Server initiated with routing
 var server = http.createServer(function (req, res) {
   var q = url.parse(req.url, true);
-  var filename = "." + q.pathname;
+  var filename = "./views" + q.pathname;
+  console.log("filename is " + filename);
   fs.readFile(filename, function(err, data){
     if (err){
       res.writeHead(404, {'Content-Type': 'text/html'});
